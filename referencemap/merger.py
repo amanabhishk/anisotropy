@@ -119,6 +119,9 @@ if __name__ == "__main__":
     p.add_argument('--overwrite', dest='overwrite',
                    default=False, action='store_true',
                    help='Option to overwrite existing merged maps')
+    p.add_argument('--month', dest='month', nargs='*',
+                    default='??',
+                    help='Add the month to merge in the format 01,02..12')
     args = p.parse_args()
     opts = vars(args).copy()
 
@@ -143,22 +146,30 @@ if __name__ == "__main__":
     paramList = []
     # Removes '.fits' from the entries in masterList
     testList = [os.path.basename(f)[:-5] for f in masterList]
+    print args.month
     for f in testList:
         # Need to be split for the next section of code--to get rid of
         # duplicate parameters
         f_params = f.split('_')
         f_params = f_params[:-1]        # exclude date
-        paramList.append(f_params)
+        skip = False
+        if args.month != '??':
+            for month in args.month:
+                paramList.append(f_params[:1]+[month]+f_params[1:])
+                skip = True
+        if not skip:
+            paramList.append(f_params)
+    
     paramList.sort()
 
     # Python black magic eliminates duplicates
     paramList = list(a for a, _ in itertools.groupby(paramList))
 
-    # Run merger on each set of parameters
-    for params in paramList:
-        merger(params, **opts)
+    # # Run merger on each set of parameters
+    # for params in paramList:
+    #     merger(params, **opts)
 
-    # Run project merger
-    detectorList = ['IT', 'IC']
-    for detector in detectorList:
-        projectMerge(detector)
+    # # Run project merger
+    # detectorList = ['IT', 'IC']
+    # for detector in detectorList:
+    #     projectMerge(detector)
